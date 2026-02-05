@@ -1,0 +1,13 @@
+.wrap { min-height:100vh; display:grid; place-items:center; background:#0b0b0b; color:#fff; font-family: Arial, sans-serif; }
+.card { width: 360px; background:#111; border:1px solid #2b2b2b; border-radius:16px; padding:22px; }
+.logo { font-weight:700; letter-spacing:2px; color:#e6e6e6; margin-bottom: 10px; }
+h2 { margin: 0 0 16px; }
+label { display:block; margin: 12px 0 6px; color:#bdbdbd; font-size: 13px; }
+input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #2b2b2b; background:#0d0d0d; color:#fff; }
+small { color:#ff9a9a; display:block; margin-top: 6px; font-size: 12px; }
+.btn { width:100%; margin-top:16px; padding:10px 12px; border-radius:10px; border:0; background:#7a7a7a; color:#000; font-weight:700; cursor:pointer; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.msg { margin-top: 12px; color:#ffd27a; }
+.bottom { margin-top: 16px; color:#bdbdbd; font-size: 13px; }
+a { color:#dcdcdc; }
+a:hover { color:#fff; }

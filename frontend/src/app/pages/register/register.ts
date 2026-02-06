@@ -1,35 +1,31 @@
-import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: 'register.html',
-  styleUrl: 'register.scss',
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  templateUrl: './register.html',
+  styleUrls: ['./register.scss'],
 })
 export class RegisterComponent {
+  private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
   msg = '';
   loading = false;
-  form: FormGroup;
 
-  constructor(
-    private fb: FormBuilder,
-    private auth: AuthService,
-    private router: Router
-  ) {
-    this.form = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-    });
-  }
+  form = this.fb.nonNullable.group({
+    username: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
 
-  get f() {
-    return this.form.controls;
-  }
+  get f() { return this.form.controls; }
 
   submit() {
     this.msg = '';
@@ -40,10 +36,20 @@ export class RegisterComponent {
     }
 
     this.loading = true;
-    this.auth.register(this.form.getRawValue() as any).subscribe({
+    const dto = this.form.getRawValue();
+
+    this.auth.register(dto).subscribe({
       next: () => {
-        this.loading = false;
-        this.router.navigateByUrl('/login');
+        this.auth.login({ username: dto.username, password: dto.password }).subscribe({
+          next: () => {
+            this.loading = false;
+            this.router.navigateByUrl('/register-step2');
+          },
+          error: () => {
+            this.loading = false;
+            this.router.navigateByUrl('/login');
+          }
+        });
       },
       error: () => {
         this.loading = false;

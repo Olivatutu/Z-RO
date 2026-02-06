@@ -1,43 +1,48 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environments';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environments';
 
-type LoginResponse = { access: string; refresh: string };
+type LoginDTO = { username: string; password: string };
+type RegisterDTO = { username: string; email: string; password: string };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private base = `${environment.apiUrl}/accounts`;
+  private tokenKey = 'zero_token';
+  private userKey = 'zero_user';
 
   constructor(private http: HttpClient) {}
 
-  register(data: { username: string; email: string; password: string }) {
-    return this.http.post(`${this.base}/register/`, data);
+  get token(): string | null {
+    return localStorage.getItem(this.tokenKey);
   }
 
-  login(data: { username: string; password: string }) {
-    return this.http.post<LoginResponse>(`${this.base}/login/`, data).pipe(
-      tap((res) => {
-        localStorage.setItem('access', res.access);
-        localStorage.setItem('refresh', res.refresh);
+  get currentUsername(): string | null {
+    const raw = localStorage.getItem(this.userKey);
+    if (!raw) return null;
+    try { return JSON.parse(raw)?.username ?? null; } catch { return null; }
+  }
+
+  isLogged(): boolean {
+    return !!this.token;
+  }
+
+  register(dto: RegisterDTO) {
+    return this.http.post(`${environment.apiUrl}/api/accounts/register/`, dto);
+  }
+
+  login(dto: LoginDTO) {
+    return this.http.post<any>(`${environment.apiUrl}/api/accounts/login/`, dto).pipe(
+      tap(res => {
+        const token = res?.access || res?.token;
+        if (token) localStorage.setItem(this.tokenKey, token);
+        localStorage.setItem(this.userKey, JSON.stringify({ username: dto.username }));
       })
     );
   }
 
-  profile() {
-    return this.http.get(`${this.base}/profile/`);
-  }
-
   logout() {
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-  }
-
-  get token(): string | null {
-    return localStorage.getItem('access');
-  }
-
-  get isLoggedIn(): boolean {
-    return !!this.token;
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
   }
 }

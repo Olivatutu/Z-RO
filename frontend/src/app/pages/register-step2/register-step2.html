@@ -1,0 +1,33 @@
+<section class="step">
+  <div class="box">
+    <h1>Finish your profile</h1>
+    <p class="muted">This helps ZERO personalize your experience.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>Full name</span>
+        <input type="text" formControlName="fullName" autocomplete="name" />
+      </label>
+
+      <label>
+        <span>Weekly goal (days)</span>
+        <input type="number" formControlName="weeklyGoal" min="1" max="14" />
+      </label>
+
+      <div class="group" formGroupName="interests">
+        <p class="group__title">Choose your focus</p>
+
+        <label class="check" *ngFor="let i of interestsList">
+          <input type="checkbox" [formControlName]="i.key" />
+          <span>{{ i.label }}</span>
+        </label>
+      </div>
+
+      <small class="msg" *ngIf="msg">{{ msg }}</small>
+
+      <button class="btn" type="submit" [disabled]="loading">
+        {{ loading ? 'Saving...' : 'Go to Dashboard' }}
+      </button>
+    </form>
+  </div>
+</section>

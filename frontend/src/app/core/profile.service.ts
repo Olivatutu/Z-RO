@@ -3,12 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environments';
 import { tap } from 'rxjs/operators';
 
-export type InterestKey = 'sport' | 'food' | 'mindset' | 'growth' | 'challenges';
+export type UnitSystem = 'metric' | 'imperial';
 
 export type ProfileDTO = {
-  fullName: string;
-  weeklyGoal: number;
-  interests: InterestKey[];
+  full_name: string;
+  weekly_goal: number;
+  unit_system: UnitSystem;
+  sport: boolean;
+  food: boolean;
+  mindset: boolean;
+  growth: boolean;
+  challenges: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -27,9 +32,15 @@ export class ProfileService {
     localStorage.setItem(this.key, JSON.stringify(p));
   }
 
+  getProfile() {
+    return this.http.get<ProfileDTO>(`${environment.apiUrl}/api/accounts/profile/`).pipe(
+      tap(p => this.setLocal(p))
+    );
+  }
+
   saveProfile(p: ProfileDTO) {
-    return this.http.post(`${environment.apiUrl}/api/accounts/profile/`, p).pipe(
-      tap(() => this.setLocal(p))
+    return this.http.post<ProfileDTO>(`${environment.apiUrl}/api/accounts/profile/`, p).pipe(
+      tap(saved => this.setLocal(saved))
     );
   }
 }

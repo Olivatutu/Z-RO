@@ -10,6 +10,14 @@
       </label>
 
       <label>
+        <span>Unit system</span>
+        <select formControlName="unitSystem">
+          <option value="metric">Metric</option>
+          <option value="imperial">Imperial</option>
+        </select>
+      </label>
+
+      <label>
         <span>Weekly goal (days)</span>
         <input type="number" formControlName="weeklyGoal" min="1" max="14" />
       </label>

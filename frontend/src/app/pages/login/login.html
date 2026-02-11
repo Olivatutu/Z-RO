@@ -6,11 +6,13 @@
     <form [formGroup]="form" (ngSubmit)="submit()">
       <label>Username</label>
       <input type="text" formControlName="username" placeholder="Name" />
-      <small *ngIf="f.username.touched && f.username.invalid">Obligatorio</small>
+      <small *ngIf="f['username'].touched && f['username'].invalid">Obligatorio</small>
+
 
       <label>Password</label>
       <input type="password" formControlName="password" placeholder="••••••••" />
-      <small *ngIf="f.password.touched && f.password.invalid">Obligatorio</small>
+      <small *ngIf="f['password'].touched && f['password'].invalid">Obligatorio</small>
+
 
       <button class="btn" type="submit" [disabled]="loading">
         {{ loading ? 'Loading...' : 'Enter' }}

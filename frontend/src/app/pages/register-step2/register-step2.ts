@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { ProfileService, InterestKey } from '../../core/profile.service';
+import { ProfileService, ProfileDTO, UnitSystem } from '../../core/profile.service';
 
 @Component({
   selector: 'app-register-step2',
@@ -21,17 +21,10 @@ export class RegisterStep2Component {
   msg = '';
   loading = false;
 
-  interestsList: { key: InterestKey; label: string }[] = [
-    { key: 'sport', label: 'Sport' },
-    { key: 'food', label: 'Food' },
-    { key: 'mindset', label: 'Mindset' },
-    { key: 'growth', label: 'Growth' },
-    { key: 'challenges', label: 'Challenges' },
-  ];
-
   form = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
     weeklyGoal: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
+    unitSystem: ['metric' as UnitSystem, [Validators.required]],
     interests: this.fb.nonNullable.group({
       sport: [true],
       food: [false],
@@ -42,27 +35,36 @@ export class RegisterStep2Component {
   });
 
   constructor() {
-    if (!this.auth.isLogged()) this.router.navigateByUrl('/login');
+    if (!this.auth.isLogged()) {
+      this.router.navigateByUrl('/login');
+      return;
+    }
+
     const local = this.profiles.getLocal();
     if (local) {
       this.form.patchValue({
-        fullName: local.fullName,
-        weeklyGoal: local.weeklyGoal,
+        fullName: local.full_name,
+        weeklyGoal: local.weekly_goal,
+        unitSystem: local.unit_system,
         interests: {
-          sport: local.interests.includes('sport'),
-          food: local.interests.includes('food'),
-          mindset: local.interests.includes('mindset'),
-          growth: local.interests.includes('growth'),
-          challenges: local.interests.includes('challenges'),
+          sport: local.sport,
+          food: local.food,
+          mindset: local.mindset,
+          growth: local.growth,
+          challenges: local.challenges,
         }
       });
     }
   }
 
-  private collectInterests(): InterestKey[] {
-    const v = this.form.getRawValue().interests;
-    return Object.entries(v).filter(([, on]) => on).map(([k]) => k as InterestKey);
-  }
+  interestsList = [
+    { key: 'sport', label: 'Sport' },
+    { key: 'food', label: 'Food' },
+    { key: 'mindset', label: 'Mindset' },
+    { key: 'growth', label: 'Growth' },
+    { key: 'challenges', label: 'Challenges' },
+  ] as const;
+
 
   submit() {
     this.msg = '';
@@ -73,10 +75,17 @@ export class RegisterStep2Component {
     }
 
     this.loading = true;
-    const dto = {
-      fullName: this.form.getRawValue().fullName,
-      weeklyGoal: this.form.getRawValue().weeklyGoal,
-      interests: this.collectInterests(),
+    const v = this.form.getRawValue();
+
+    const dto: ProfileDTO = {
+      full_name: v.fullName,
+      weekly_goal: v.weeklyGoal,
+      unit_system: v.unitSystem,
+      sport: v.interests.sport,
+      food: v.interests.food,
+      mindset: v.interests.mindset,
+      growth: v.interests.growth,
+      challenges: v.interests.challenges,
     };
 
     this.profiles.saveProfile(dto).subscribe({

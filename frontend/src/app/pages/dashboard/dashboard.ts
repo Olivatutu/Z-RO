@@ -11,6 +11,6 @@ import { ProfileService } from '../../core/profile.service';
 })
 export class DashboardComponent {
   private profiles = inject(ProfileService);
-  name = this.profiles.getLocal()?.fullName || 'Alejandro';
+  name = this.profiles.getLocal()?.full_name || 'Alejandro';
 }
 

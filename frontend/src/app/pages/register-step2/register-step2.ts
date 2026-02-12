@@ -21,6 +21,14 @@ export class RegisterStep2Component {
   msg = '';
   loading = false;
 
+  interestsList = [
+    { key: 'sport', label: 'Sport' },
+    { key: 'food', label: 'Food' },
+    { key: 'mindset', label: 'Mindset' },
+    { key: 'growth', label: 'Growth' },
+    { key: 'challenges', label: 'Challenges' },
+  ] as const;
+
   form = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
     weeklyGoal: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
@@ -41,30 +49,37 @@ export class RegisterStep2Component {
     }
 
     const local = this.profiles.getLocal();
+
     if (local) {
       this.form.patchValue({
-        fullName: local.full_name,
-        weeklyGoal: local.weekly_goal,
-        unitSystem: local.unit_system,
+        fullName: local.full_name ?? '',
+        weeklyGoal: local.weekly_goal ?? 4,
+        unitSystem: (local.unit_system ?? 'metric') as UnitSystem,
         interests: {
-          sport: local.sport,
-          food: local.food,
-          mindset: local.mindset,
-          growth: local.growth,
-          challenges: local.challenges,
-        }
+          sport: !!local.sport,
+          food: !!local.food,
+          mindset: !!local.mindset,
+          growth: !!local.growth,
+          challenges: !!local.challenges,
+        },
       });
     }
   }
 
-  interestsList = [
-    { key: 'sport', label: 'Sport' },
-    { key: 'food', label: 'Food' },
-    { key: 'mindset', label: 'Mindset' },
-    { key: 'growth', label: 'Growth' },
-    { key: 'challenges', label: 'Challenges' },
-  ] as const;
+  private buildDto(): ProfileDTO {
+    const v = this.form.getRawValue();
 
+    return {
+      full_name: v.fullName,
+      weekly_goal: v.weeklyGoal,
+      unit_system: v.unitSystem,
+      sport: v.interests.sport,
+      food: v.interests.food,
+      mindset: v.interests.mindset,
+      growth: v.interests.growth,
+      challenges: v.interests.challenges,
+    };
+  }
 
   submit() {
     this.msg = '';
@@ -75,18 +90,9 @@ export class RegisterStep2Component {
     }
 
     this.loading = true;
-    const v = this.form.getRawValue();
+    const dto = this.buildDto();
 
-    const dto: ProfileDTO = {
-      full_name: v.fullName,
-      weekly_goal: v.weeklyGoal,
-      unit_system: v.unitSystem,
-      sport: v.interests.sport,
-      food: v.interests.food,
-      mindset: v.interests.mindset,
-      growth: v.interests.growth,
-      challenges: v.interests.challenges,
-    };
+    this.profiles.setLocal(dto);
 
     this.profiles.saveProfile(dto).subscribe({
       next: () => {
@@ -95,9 +101,8 @@ export class RegisterStep2Component {
       },
       error: () => {
         this.loading = false;
-        this.profiles.setLocal(dto);
         this.router.navigateByUrl('/dashboard');
-      }
+      },
     });
   }
 }

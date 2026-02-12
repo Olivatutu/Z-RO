@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { finalize, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -38,22 +39,17 @@ export class RegisterComponent {
     this.loading = true;
     const dto = this.form.getRawValue();
 
-    this.auth.register(dto).subscribe({
-      next: () => {
-        this.auth.login({ username: dto.username, password: dto.password }).subscribe({
-          next: () => {
-            this.loading = false;
-            this.router.navigateByUrl('/register-step2');
-          },
-          error: () => {
-            this.loading = false;
-            this.router.navigateByUrl('/login');
-          }
-        });
-      },
-      error: () => {
-        this.loading = false;
-        this.msg = 'No se pudo crear la cuenta (puede que el usuario ya exista).';
+    this.auth.register(dto).pipe(
+      switchMap(() => this.auth.login({ username: dto.username, password: dto.password })),
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: () => this.router.navigateByUrl('/register-step2'),
+      error: (err) => {
+        const data = err?.error;
+        if (data?.username) this.msg = data.username[0];
+        else if (data?.email) this.msg = data.email[0];
+        else if (data?.password) this.msg = data.password[0];
+        else this.msg = 'No se pudo crear la cuenta.';
       }
     });
   }
